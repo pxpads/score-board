@@ -178,7 +178,7 @@ game_input = {}
 for idx, player in enumerate(players):
     with cols[idx % len(cols)]:
         game_input[player] = st.number_input(
-            player, min_value=0, value=0, step=1, key=f"input_{player}"
+            player, value=0, step=1, key=f"input_{player}"
         )
 
 if st.button("💾 Simpan Skor Game Ini", use_container_width=False):
@@ -234,15 +234,19 @@ COLORS = [
     "#fb923c", "#e879f9"
 ]
 
-# Bar Chart – Total Skor
+# Bar Chart – Total Skor (sorted descending)
 with chart_col1:
     st.markdown("### 📊 Total Skor per Pemain")
     bar_df = pd.DataFrame({"Pemain": list(totals.keys()), "Total Skor": list(totals.values())})
+    bar_df = bar_df.sort_values("Total Skor", ascending=False).reset_index(drop=True)
+    # Assign colors based on sorted order
+    bar_colors = [COLORS[i % len(COLORS)] for i in range(len(bar_df))]
     fig_bar = px.bar(
         bar_df, x="Pemain", y="Total Skor",
         color="Pemain",
-        color_discrete_sequence=COLORS,
+        color_discrete_sequence=bar_colors,
         text="Total Skor",
+        category_orders={"Pemain": bar_df["Pemain"].tolist()},
     )
     fig_bar.update_traces(textposition="outside", textfont_size=13)
     fig_bar.update_layout(
@@ -288,7 +292,7 @@ with chart_col2:
     st.plotly_chart(fig_line, use_container_width=True)
 
 # ── Line Chart – Skor Per Game (non-kumulatif) ────────────────────────────────
-st.markdown("### 📉 Skor Mentah per Game")
+st.markdown("### 📉 Skor per Game")
 fig_raw = go.Figure()
 for idx, player in enumerate(players):
     fig_raw.add_trace(go.Scatter(
